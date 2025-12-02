@@ -1,123 +1,198 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>aplikasi_ujian</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aplikasi Ujian Anti-Cheat</title>
 
-    <style>
-        body {
-            margin: 0;
-            overflow: hidden;
-            font-family: Arial, sans-serif;
-            background: #ffffff;
-        }
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        background: #f7f7f7;
+        text-align: center;
+    }
+    #lockScreen {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: rgba(0, 0, 0, 0.85);
+        color: white;
+        display: none;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        z-index: 999999;
+        padding: 20px;
+    }
+    input {
+        padding: 10px;
+        font-size: 18px;
+        margin-top: 10px;
+        width: 250px;
+        border-radius: 5px;
+    }
+    button {
+        margin-top: 10px;
+        padding: 10px 25px;
+        font-size: 18px;
+        border: none;
+        background: #28a745;
+        color: white;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+</style>
 
-        .header {
-            width: 100%;
-            padding: 10px;
-            background: #510375;
-            color: #fff;
-            text-align: center;
-            font-size: 20px;
-            font-weight: bold;
-        }
-
-        iframe {
-            width: 100vw;
-            height: calc(100vh - 50px);
-            border: none;
-        }
-    </style>
 </head>
 <body>
 
-<div class="header">APLIKASI UJIAN</div>
+<h1>Halaman Ujian</h1>
+<p>⚠ Jangan keluar dari halaman selama ujian berlangsung.</p>
 
-<iframe id="formUjian"
- src="https://docs.google.com/forms/d/e/1FAIpQLSfBEUtFLPXxvdoFrPWFLZLreg6_zgQpfbGPWUXzfu97KvJLPA/viewform?usp=publish-editor">
-</iframe>
+<!-- LAYAR TERKUNCI -->
+<div id="lockScreen">
+    <h2>⛔ Anda meninggalkan halaman ujian!</h2>
+    <p>Untuk masuk kembali, masukkan kata sandi:</p>
+    <input type="password" id="passwordInput" placeholder="Masukkan kata sandi...">
+    <button onclick="bukaKunci()">Masuk</button>
+    <p style="color: #ffcccb; margin-top:10px;" id="info"></p>
+</div>
 
 <script>
-<script>
-// =========================
-// KONFIGURASI KATA SANDI
-// =========================
-const PASSWORD_KEMBALI = "guru123"; // ganti sesuai kebutuhan
+    // -------------------------------
+    //  KATA SANDI UNTUK MASUK KEMBALI
+    // -------------------------------
+    const PASSWORD = "UJIAN-2025";  // <<< GANTI DI SINI
 
-// =========================
-// LOAD STATUS
-// =========================
-let pelanggaran = localStorage.getItem("pelanggaran")
-    ? parseInt(localStorage.getItem("pelanggaran"))
-    : 0;
+    let sudahKeluar = false;
 
-if (localStorage.getItem("terkunci") === "true") {
-    kunciHalaman();
-}
+    // Deteksi jika siswa keluar dari tab
+    document.addEventListener("visibilitychange", () => {
+        if (document.hidden) {
+            sudahKeluar = true;
+        } else {
+            if (sudahKeluar) {
+                kunciLayar();
+            }
+        }
+    });
 
-// =========================
-// DETEKSI KELUAR HALAMAN
-// =========================
-document.addEventListener("visibilitychange", function () {
-    if (document.hidden) {
-        pelanggaran++;
-        localStorage.setItem("pelanggaran", pelanggaran);
-
-        localStorage.setItem("terkunci", "true");
-        kunciHalaman();
+    // Fungsi menampilkan layar kunci
+    function kunciLayar() {
+        document.getElementById("lockScreen").style.display = "flex";
     }
-});
 
-// =========================
-// FUNGSI HALAMAN TERKUNCI
-// =========================
-function kunciHalaman() {
-    document.body.innerHTML = `
-        <h1 style="
-            color:#d10000;
-            text-align:center;
-            margin-top:60px;
-            font-size:42px;
-            font-weight:bold;
-        ">⚠️ HALAMAN UJIAN TERKUNCI</h1>
-
-        <p style="text-align:center; font-size:22px; margin-top:20px;">
-            Sistem mendeteksi bahwa Anda meninggalkan halaman ujian.
-        </p>
-
-        <p style="text-align:center; font-size:20px; margin-top:10px; color:#444;">
-            Anda telah keluar sebanyak <b>${pelanggaran} kali</b>.
-        </p>
-
-        <div style="text-align:center; margin-top:40px;">
-            <p>Masukkan kata sandi dari guru untuk membuka kunci:</p>
-            <input id="passInput" style="padding:10px; font-size:18px;" type="password" placeholder="Kata sandi">
-            <button id="btnUnlock" style="padding:10px 20px; font-size:18px;">Buka Kunci</button>
-        </div>
-    `;
-
-    document.getElementById("btnUnlock").addEventListener("click", bukaKunci);
-}
-
-// =========================
-// FUNGSI BUKA KUNCI
-// =========================
-function bukaKunci() {
-    const input = document.getElementById("passInput").value;
-
-    if (input === PASSWORD_KEMBALI) {
-        localStorage.setItem("terkunci", "false");
-        alert("✔️ Halaman berhasil dibuka kembali.");
-        location.reload();
-    } else {
-        alert("❌ Kata sandi salah!");
+    // Fungsi membuka kunci jika sandi benar
+    function bukaKunci() {
+        let input = document.getElementById("passwordInput").value;
+        if (input === PASSWORD) {
+            document.getElementById("lockScreen").style.display = "none";
+            document.getElementById("info").innerHTML = "";
+        } else {
+            document.getElementById("info").innerHTML = "❌ Kata sandi salah!";
+        }
     }
-}
 </script>
-
 
 </body>
 </html>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aplikasi Ujian Anti-Cheat</title>
 
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        background: #f7f7f7;
+        text-align: center;
+    }
+    #lockScreen {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: rgba(0, 0, 0, 0.85);
+        color: white;
+        display: none;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        z-index: 999999;
+        padding: 20px;
+    }
+    input {
+        padding: 10px;
+        font-size: 18px;
+        margin-top: 10px;
+        width: 250px;
+        border-radius: 5px;
+    }
+    button {
+        margin-top: 10px;
+        padding: 10px 25px;
+        font-size: 18px;
+        border: none;
+        background: #28a745;
+        color: white;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+</style>
 
+</head>
+<body>
+
+<h1>Halaman Ujian</h1>
+<p>⚠ Jangan keluar dari halaman selama ujian berlangsung.</p>
+
+<!-- LAYAR TERKUNCI -->
+<div id="lockScreen">
+    <h2>⛔ Anda meninggalkan halaman ujian!</h2>
+    <p>Untuk masuk kembali, masukkan kata sandi:</p>
+    <input type="password" id="passwordInput" placeholder="Masukkan kata sandi...">
+    <button onclick="bukaKunci()">Masuk</button>
+    <p style="color: #ffcccb; margin-top:10px;" id="info"></p>
+</div>
+
+<script>
+    // -------------------------------
+    //  KATA SANDI UNTUK MASUK KEMBALI
+    // -------------------------------
+    const PASSWORD = "UJIAN-2025";  // <<< GANTI DI SINI
+
+    let sudahKeluar = false;
+
+    // Deteksi jika siswa keluar dari tab
+    document.addEventListener("visibilitychange", () => {
+        if (document.hidden) {
+            sudahKeluar = true;
+        } else {
+            if (sudahKeluar) {
+                kunciLayar();
+            }
+        }
+    });
+
+    // Fungsi menampilkan layar kunci
+    function kunciLayar() {
+        document.getElementById("lockScreen").style.display = "flex";
+    }
+
+    // Fungsi membuka kunci jika sandi benar
+    function bukaKunci() {
+        let input = document.getElementById("passwordInput").value;
+        if (input === PASSWORD) {
+            document.getElementById("lockScreen").style.display = "none";
+            document.getElementById("info").innerHTML = "";
+        } else {
+            document.getElementById("info").innerHTML = "❌ Kata sandi salah!";
+        }
+    }
+</script>
+
+</body>
+</html>
