@@ -40,9 +40,16 @@
 
 <script>
 // ==========================
-// KONFIGURASI QR
+// CEK JIKA QR MEMBERIKAN IZIN BUKA KUNCI
+// URL contoh: ujian.html?unlock=1
 // ==========================
-const KODE_QR = "UNLOCK-12345";
+const urlParams = new URLSearchParams(window.location.search);
+
+if (urlParams.get("unlock") === "1") {
+    // hapus kunci & reset pelanggaran
+    localStorage.setItem("terkunci", "false");
+    localStorage.setItem("pelanggaran", "0");
+}
 
 // ==========================
 // LOAD STATUS
@@ -51,6 +58,7 @@ let pelanggaran = localStorage.getItem("pelanggaran")
     ? parseInt(localStorage.getItem("pelanggaran"))
     : 0;
 
+// jika terkunci → tampilkan halaman terkunci
 if (localStorage.getItem("terkunci") === "true") {
     kunciHalaman();
 }
@@ -89,30 +97,10 @@ function kunciHalaman() {
             Anda telah keluar sebanyak <b>${pelanggaran} kali</b>.
         </p>
 
-        <div style="text-align:center; margin-top:40px;">
-            <p>Masukkan kode QR dari pengawas untuk membuka kunci:</p>
-            <input id="unlockInput" style="padding:10px; font-size:18px;" placeholder="Kode QR">
-            <button id="btnUnlock" style="padding:10px 20px; font-size:18px;">Buka Kunci</button>
-        </div>
+        <p style="text-align:center; font-size:20px; margin-top:40px; color:#000;">
+            Untuk membuka halaman kembali, silakan <b>scan ulang QR dari Pengawas</b>.
+        </p>
     `;
-
-    // >>> HUBUNGKAN TOMBOL SETELAH HALAMAN DI-RENDER <<<
-    document.getElementById("btnUnlock").addEventListener("click", unlock);
-}
-
-// ==========================
-// UNLOCK HALAMAN
-// ==========================
-function unlock() {
-    const input = document.getElementById("unlockInput").value;
-
-    if (input === KODE_QR) {
-        localStorage.setItem("terkunci", "false");
-        alert("✔️ Halaman berhasil dibuka kembali.");
-        location.reload();
-    } else {
-        alert("❌ Kode QR salah! Periksa kembali.");
-    }
 }
 </script>
 
