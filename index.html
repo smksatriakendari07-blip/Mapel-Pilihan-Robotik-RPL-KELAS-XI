@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>APLIKASI UJIAN</title>
+<title>Aplikasi Ujian Anti-Cheat Aman</title>
 
 <style>
     body {
@@ -11,7 +11,7 @@
         margin: 0;
         background: #f7f7f7;
         text-align: center;
-        user-select: none; /* 🔒 Tidak bisa blok/seleksi tulisan */
+        user-select: none;
     }
     #lockScreen {
         position: fixed;
@@ -47,10 +47,9 @@
 </head>
 <body>
 
-<h1>Halaman Ujian Terkunci</h1>
+<h1>Halaman Ujian</h1>
 <p>⚠ Jangan keluar dari halaman selama ujian berlangsung.</p>
 
-<!-- LAYAR KUNCI -->
 <div id="lockScreen">
     <h2>⛔ Anda meninggalkan halaman ujian!</h2>
     <p>Masukkan kata sandi untuk masuk kembali:</p>
@@ -60,72 +59,55 @@
 </div>
 
 <script>
-    // ============================================
-    //    HASH dari kata sandi asli: UJIAN-2025
-    // ============================================
-    const HASH_PASSWORD = "a931e3dad5c5a62e115a9929b9ea18850bc9ec7247565a03d5b01791e5ee8883";
 
-    let keluar = false;
+// HASH password
+const HASH_PASSWORD = "a931e3dad5c5a62e115a9929b9ea18850bc9ec7247565a03d5b01791e5ee8883";
 
-    // Deteksi jika keluar halaman
-    document.addEventListener("visibilitychange", () => {
-        if (document.hidden) {
-            keluar = true;
-        } else {
-            if (keluar) {
-                kunci();
+let terkunci = false;
+
+// FIX UTAMA — Paksa tampilan terkunci saat kembali ke halaman
+document.addEventListener("visibilitychange", () => {
+    if (document.hidden) {
+        terkunci = true;
+    } else {
+        setTimeout(() => {
+            if (terkunci) {
+                document.getElementById("lockScreen").style.display = "flex";
             }
-        }
-    });
-
-    function kunci() {
-        document.getElementById("lockScreen").style.display = "flex";
+        }, 300); // memberi waktu browser render
     }
+});
 
-    // Fungsi hashing SHA-256
-    async function hash(text) {
-        const encoder = new TextEncoder();
-        const data = encoder.encode(text);
-        const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-        const hashArray = Array.from(new Uint8Array(hashBuffer));
-        return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+// Hash SHA-256
+async function hash(text) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(text);
+    const buffer = await crypto.subtle.digest("SHA-256", data);
+    const hashArray = Array.from(new Uint8Array(buffer));
+    return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
+// Cek Password
+async function cekPassword() {
+    const input = document.getElementById("passwordInput").value;
+    const hashedInput = await hash(input);
+
+    if (hashedInput === HASH_PASSWORD) {
+        document.getElementById("lockScreen").style.display = "none";
+        terkunci = false;
+    } else {
+        document.getElementById("info").innerHTML = "❌ Kata sandi salah!";
     }
+}
 
-    // Cek password
-    async function cekPassword() {
-        const input = document.getElementById("passwordInput").value;
-        const hashedInput = await hash(input);
+// ANTI COPY / ANTI INSPECT
+document.addEventListener("contextmenu", e => e.preventDefault());
+document.addEventListener("keydown", e => {
+    if (e.ctrlKey && ["c","v","x","s","u","a"].includes(e.key.toLowerCase())) e.preventDefault();
+    if (e.key === "F12") e.preventDefault();
+});
+document.addEventListener("selectstart", e => e.preventDefault());
 
-        if (hashedInput === HASH_PASSWORD) {
-            document.getElementById("lockScreen").style.display = "none";
-            document.getElementById("info").innerHTML = "";
-            keluar = false; 
-        } else {
-            document.getElementById("info").innerHTML = "❌ Kata sandi salah!";
-        }
-    }
-
-    // =====================================================
-    // 🔒 ANTI COPY, ANTI PASTE, ANTI CUT, ANTI SELECT
-    // =====================================================
-    document.addEventListener("contextmenu", e => e.preventDefault()); // blok klik kanan
-
-    document.addEventListener("keydown", function(e) {
-        if (
-            e.ctrlKey && 
-            ["c", "v", "x", "s", "u", "a"].includes(e.key.toLowerCase())
-        ) {
-            e.preventDefault();
-        }
-
-        // Blok F12 (Inspect)
-        if (e.key === "F12") {
-            e.preventDefault();
-        }
-    });
-
-    // Blok drag select
-    document.addEventListener("selectstart", e => e.preventDefault());
 </script>
 
 </body>
